@@ -18,7 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class BookControllerIntegrationTest {
+public class BookControllerIntegrationTest extends AbstractTestcontainersTest{
 
     @Autowired
     private MockMvc mockMvc;
@@ -28,78 +28,71 @@ public class BookControllerIntegrationTest {
 
     @Test
     void createAndGetBookTest() throws Exception {
+        String title = "Integration Test 1";
+
         ResultActions actions = mockMvc.perform(post("/books")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\": \"Integration Test\"}"))
-                .andExpect(status().isCreated())
-                .andExpect(header().string("Location", "/books/1"));
-
-        Optional<Book> foundBook = repository.findByTitle("Integration Test");
-
-        assertNotNull(foundBook.get());
+                        .content("{\"title\": \"" + title + "\"}"))
+                .andExpect(status().isCreated());
 
         String location = actions.andReturn().getResponse().getHeader("Location");
+        assertNotNull(location, "Location header должен быть возвращён");
 
         mockMvc.perform(get(location))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Integration Test"));
-
+                .andExpect(jsonPath("$.title").value(title));
     }
 
 
     @Test
     void changeAndGetBookTest() throws Exception {
-        String title = "Integration Test";
-        mockMvc.perform(post("/books")
+        String title = "Integration Test 2";
+
+        ResultActions creation = mockMvc.perform(post("/books")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\": \"" + title + "\"}"))
-                .andExpect(status().isCreated())
-                .andExpect(header().string("Location", "/books/1"));
+                .andExpect(status().isCreated());
 
+        String location = creation.andReturn().getResponse().getHeader("Location");
+        assertNotNull(location);
 
-        Optional<Book> foundBook = repository.findByTitle(title);
+        Long id = extractIdFromLocation(location);
 
-        assertNotNull(foundBook.get());
+        String changedTitle = "Changed title";
 
-        String changeTitle = "Changed title";
-
-        mockMvc.perform(put("/books/{id}", foundBook.get().getId())
+        mockMvc.perform(put("/books/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"id\": " + foundBook.get().getId() + "," +
-                                "\"title\": \"" + changeTitle + "\"}"))
+                        .content("{\"id\": " + id + ", \"title\": \"" + changedTitle + "\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value(changeTitle));
+                .andExpect(jsonPath("$.title").value(changedTitle));
 
-        mockMvc.perform(get("/books" + "/" + foundBook.get().getId()))
+        mockMvc.perform(get("/books/{id}", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value(changeTitle));
+                .andExpect(jsonPath("$.title").value(changedTitle));
 
     }
 
 
     @Test
     void deleteBookTest() throws Exception {
-        ResultActions actions = mockMvc.perform(post("/books")
+        String title = "Integration Test 3";
+
+        ResultActions creation = mockMvc.perform(post("/books")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\": \"Integration Test\"}"))
-                .andExpect(status().isCreated())
-                .andExpect(header().string("Location", "/books/1"));
+                        .content("{\"title\": \"" + title + "\"}"))
+                .andExpect(status().isCreated());
 
-        Optional<Book> foundBook = repository.findByTitle("Integration Test");
+        String location = creation.andReturn().getResponse().getHeader("Location");
+        assertNotNull(location);
 
-        assertNotNull(foundBook.get());
+        Long id = extractIdFromLocation(location);
 
-        mockMvc.perform(delete("/books/{id}", foundBook.get().getId()))
-                .andExpect(status().isOk());
+        mockMvc.perform(delete("/books/{id}", id))
+                .andExpect(status().isNoContent());
 
-
-        String location = actions.andReturn().getResponse().getHeader("Location");
-
-        mockMvc.perform(get(location))
+        mockMvc.perform(get("/books/{id}", id))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString("not found")));
-        ;
-
     }
 
     @Test
@@ -126,6 +119,11 @@ public class BookControllerIntegrationTest {
                         .content("{\"title\": \"doesn't matter\"}"))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString("Book not found")));
+    }
+
+    private Long extractIdFromLocation(String location) {
+        String[] parts = location.split("/");
+        return Long.parseLong(parts[parts.length - 1]);
     }
 }
 

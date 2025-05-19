@@ -28,15 +28,14 @@ public class BookDTOControllerTest {
 
    @Test
     public void getBookByIdTest() throws Exception {
-        Book book = new Book(1L, "Title");
+       Long testId = 1L;
+       BookDTO book = new BookDTO(testId, "Title");
 
-        when(service.getBookById(1L)).thenReturn(book);
+       when(service.getBookById(testId)).thenReturn(book);
 
-        mockMvc.perform(get("/books/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Title"));
-
-
+       mockMvc.perform(get("/books/{id}", testId))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.title").value("Title"));
     }
 
     @Test
@@ -46,7 +45,7 @@ public class BookDTOControllerTest {
 
         mockMvc.perform(get("/books/" + unexistId))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string("Book not found:" + unexistId));
+                .andExpect(content().string("Book not found: " + unexistId));
     }
 
     @Test

@@ -12,9 +12,11 @@ public class BookService {
         this.repository = repository;
     }
 
-    public Book getBookById(Long id) {
-        return repository.findById(id)
+    public BookDTO getBookById(Long id) {
+        Book found = repository.findById(id)
                 .orElseThrow(() -> new BookNotFoundException(id));
+
+        return new BookDTO(found.getId(), found.getTitle());
     }
 
     public BookDTO save(BookDTO bookDTO) {

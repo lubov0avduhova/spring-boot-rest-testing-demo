@@ -2,6 +2,8 @@ package org.example.testing;
 
 import jakarta.validation.constraints.NotBlank;
 
+import java.util.Objects;
+
 public class BookDTO {
     private Long id;
 
@@ -28,5 +30,17 @@ public class BookDTO {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        BookDTO bookDTO = (BookDTO) o;
+        return Objects.equals(id, bookDTO.id) && Objects.equals(title, bookDTO.title);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, title);
     }
 }

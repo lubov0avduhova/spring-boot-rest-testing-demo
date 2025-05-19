@@ -23,11 +23,11 @@ public class BookDTOServiceTest {
 
     @Test
     public void getBookByIdTest(){
-        Book expected = new Book(1L, "title");
+        BookDTO expected = new BookDTO(1L, "title");
+        Book entity = new Book(1L, "title");
+        when(repository.findById(1L)).thenReturn(Optional.of(entity));
 
-        when(repository.findById(1L)).thenReturn(Optional.of(expected));
-
-        Book actual = service.getBookById(1L);
+        BookDTO actual = service.getBookById(1L);
 
         assertEquals(expected, actual);
     }
@@ -36,8 +36,8 @@ public class BookDTOServiceTest {
     void shouldThrowWhenBookNotFound() {
         when(repository.findById(-1L)).thenReturn(Optional.empty());
 
-        RuntimeException thrown = assertThrows(RuntimeException.class, () -> service.getBookById(-1L));
-        assertEquals("Book not found", thrown.getMessage());
+        RuntimeException thrown = assertThrows(BookNotFoundException.class, () -> service.getBookById(-1L));
+        assertEquals("Book not found: -1", thrown.getMessage());
 
     }
 }
