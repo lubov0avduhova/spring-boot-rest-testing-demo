@@ -1,5 +1,7 @@
 package org.example.testing;
 
+import org.example.testing.entity.Book;
+import org.example.testing.repository.BookRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,7 +17,7 @@ class BookRepositoryTest extends AbstractTestcontainersTest{
 
     @Test
     public void saveTest() {
-        Book created = new Book(null, "title");
+        Book created = new Book(null, "title", "Author", 2000);
 
         Book saved = bookRepository.save(created);
 
@@ -26,10 +28,9 @@ class BookRepositoryTest extends AbstractTestcontainersTest{
 
     @Test
     public void findById() {
-        Book created = new Book(null, "title");
+        Book created = new Book(null, "title", "Author", 2000);
 
         Book saved = bookRepository.save(created);
-
 
         Optional<Book> found = bookRepository.findById(saved.getId());
 
@@ -38,7 +39,7 @@ class BookRepositoryTest extends AbstractTestcontainersTest{
 
     @Test
     public void findByTitle() {
-        Book created = new Book(null, "Spring title");
+        Book created = new Book(null, "Spring title", "Author", 2000);
 
         Book saved = bookRepository.save(created);
 
@@ -51,7 +52,7 @@ class BookRepositoryTest extends AbstractTestcontainersTest{
 
     @Test
     public void deleteBook() {
-        Book created = new Book(null, "Spring title");
+        Book created = new Book(null, "Spring title", "Author", 2000);
 
         Book saved = bookRepository.save(created);
 

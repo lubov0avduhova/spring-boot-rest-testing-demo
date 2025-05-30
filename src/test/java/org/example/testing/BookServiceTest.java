@@ -1,5 +1,10 @@
 package org.example.testing;
 
+import org.example.testing.dto.BookResponse;
+import org.example.testing.entity.Book;
+import org.example.testing.exception.BookNotFoundException;
+import org.example.testing.repository.BookRepository;
+import org.example.testing.service.BookService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -13,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class BookDTOServiceTest {
+public class BookServiceTest {
 
     @Mock
     private BookRepository repository;
@@ -23,11 +28,11 @@ public class BookDTOServiceTest {
 
     @Test
     public void getBookByIdTest(){
-        BookDTO expected = new BookDTO(1L, "title");
-        Book entity = new Book(1L, "title");
+        BookResponse expected = new BookResponse(1L, "title","Author", 2000);
+        Book entity = new Book(1L, "title", "Author", 2000);
         when(repository.findById(1L)).thenReturn(Optional.of(entity));
 
-        BookDTO actual = service.getBookById(1L);
+        BookResponse actual = service.getBookById(1L);
 
         assertEquals(expected, actual);
     }

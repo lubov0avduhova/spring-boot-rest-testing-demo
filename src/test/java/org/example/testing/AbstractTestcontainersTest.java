@@ -11,7 +11,7 @@ import org.springframework.test.context.DynamicPropertySource;
 public abstract class AbstractTestcontainersTest {
 
     @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15")
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17")
             .withDatabaseName("test")
             .withUsername("user")
             .withPassword("password");

@@ -1,5 +1,8 @@
 package org.example.testing;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.testing.dto.BookRequest;
+import org.example.testing.repository.BookRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -11,14 +14,12 @@ import org.springframework.test.web.servlet.ResultActions;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.Optional;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class BookControllerIntegrationTest extends AbstractTestcontainersTest{
+public class BookControllerIntegrationTest extends AbstractTestcontainersTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -26,13 +27,20 @@ public class BookControllerIntegrationTest extends AbstractTestcontainersTest{
     @Autowired
     private BookRepository repository;
 
+    @Autowired
+    private ObjectMapper mapper;
+
     @Test
     void createAndGetBookTest() throws Exception {
         String title = "Integration Test 1";
+        String author = "Author";
+        int year = 2005;
+
+        BookRequest book = new BookRequest(title, author, year);
 
         ResultActions actions = mockMvc.perform(post("/books")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\": \"" + title + "\"}"))
+                        .content(mapper.writeValueAsString(book)))
                 .andExpect(status().isCreated());
 
         String location = actions.andReturn().getResponse().getHeader("Location");
@@ -47,10 +55,14 @@ public class BookControllerIntegrationTest extends AbstractTestcontainersTest{
     @Test
     void changeAndGetBookTest() throws Exception {
         String title = "Integration Test 2";
+        String author = "Author";
+        int year = 2005;
+
+        BookRequest book = new BookRequest(title, author, year);
 
         ResultActions creation = mockMvc.perform(post("/books")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\": \"" + title + "\"}"))
+                        .content(mapper.writeValueAsString(book)))
                 .andExpect(status().isCreated());
 
         String location = creation.andReturn().getResponse().getHeader("Location");
@@ -59,10 +71,11 @@ public class BookControllerIntegrationTest extends AbstractTestcontainersTest{
         Long id = extractIdFromLocation(location);
 
         String changedTitle = "Changed title";
+        BookRequest сhangedBook = new BookRequest(changedTitle, author, year);
 
         mockMvc.perform(put("/books/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"id\": " + id + ", \"title\": \"" + changedTitle + "\"}"))
+                        .content(mapper.writeValueAsString(сhangedBook)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value(changedTitle));
 
@@ -76,10 +89,14 @@ public class BookControllerIntegrationTest extends AbstractTestcontainersTest{
     @Test
     void deleteBookTest() throws Exception {
         String title = "Integration Test 3";
+        String author = "Author";
+        int year = 2005;
+
+        BookRequest book = new BookRequest(title, author, year);
 
         ResultActions creation = mockMvc.perform(post("/books")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\": \"" + title + "\"}"))
+                        .content(mapper.writeValueAsString(book)))
                 .andExpect(status().isCreated());
 
         String location = creation.andReturn().getResponse().getHeader("Location");
@@ -105,18 +122,29 @@ public class BookControllerIntegrationTest extends AbstractTestcontainersTest{
 
     @Test
     void postBookException() throws Exception {
+        String author = "Author";
+        int year = 2005;
+
+        BookRequest book = new BookRequest(null, author, year);
+
         mockMvc.perform(post("/books")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\": \"\"}"))
+                        .content(mapper.writeValueAsString(book)))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string(containsString("Title is required")));
     }
 
     @Test
     void putBookException() throws Exception {
+        String title = "Integration Test 123";
+        String author = "Author";
+        int year = 2005;
+
+        BookRequest book = new BookRequest(title, author, year);
+
         mockMvc.perform(put("/books/{id}", "999999")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\": \"doesn't matter\"}"))
+                        .content(mapper.writeValueAsString(book)))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString("Book not found")));
     }
