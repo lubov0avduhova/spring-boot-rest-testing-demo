@@ -1,6 +1,8 @@
 package org.example.testing.service;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.example.testing.mapper.BookMapper;
 import org.example.testing.exception.BookNotFoundException;
 import org.example.testing.repository.BookRepository;
 import org.example.testing.dto.BookRequest;
@@ -9,36 +11,33 @@ import org.example.testing.entity.Book;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class BookService {
 
     private final BookRepository repository;
-
-    public BookService(BookRepository repository) {
-        this.repository = repository;
-    }
+    private final BookMapper bookMapper;
 
     public BookResponse getBookById(Long id) {
         Book foundBook = repository.findById(id)
                 .orElseThrow(() -> new BookNotFoundException(id));
 
-        return new BookResponse(foundBook.getId(), foundBook.getTitle(), foundBook.getAuthor(), foundBook.getYear());
+        return bookMapper.toResponse(foundBook);
     }
 
-    public BookResponse save(BookRequest bookDTO) {
-        Book book = new Book(null, bookDTO.title(), bookDTO.author(), bookDTO.year());
+    public BookResponse save(BookRequest bookRequest) {
+        Book book = bookMapper.toEntity(bookRequest);
         Book saved = repository.save(book);
-
-        return new BookResponse(saved.getId(), saved.getTitle(), saved.getAuthor(), saved.getYear());
+        return bookMapper.toResponse(saved);
     }
 
-    public BookResponse updateBook(Long bookId, BookRequest bookDTO){
-        Book foundBook = repository.findById(bookId).orElseThrow(() -> new BookNotFoundException(bookId));
+    public BookResponse updateBook(Long bookId, BookRequest bookRequest) {
+        Book foundBook = repository.findById(bookId)
+                .orElseThrow(() -> new BookNotFoundException(bookId));
 
-        foundBook.setTitle(bookDTO.title());
+        bookMapper.updateBookFromRequest(bookRequest, foundBook);
 
-        repository.save(foundBook);
-
-        return new BookResponse(foundBook.getId(), foundBook.getTitle(), foundBook.getAuthor(), foundBook.getYear());
+        Book updated = repository.save(foundBook);
+        return bookMapper.toResponse(updated);
     }
 
     public void deleteBook(@Valid Long id) {
